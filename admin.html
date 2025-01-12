@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理者ログイン</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .hidden { display: none; }
+        .button {
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .green-button {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .blue-button {
+            background-color: #007BFF;
+            color: white;
+        }
+        .orange-button {
+            background-color: #FF5733;
+            color: white;
+        }
+        .red-button {
+            background-color: #FF3333;
+            color: white;
+        }
+        .job-item { 
+            margin: 20px 0; 
+            padding: 20px; 
+            border: 1px solid #ccc; 
+            border-radius: 8px; 
+            background-color: #fff; 
+        }
+        h1, h2 {
+            color: #333;
+        }
+        label {
+            font-weight: bold;
+        }
+        select, input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .job-item button {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        .error-message {
+            color: red;
+        }
+
+        /* レスポンシブデザインの追加 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            .button {
+                width: 100%;
+                font-size: 16px;
+                padding: 12px;
+            }
+            .job-item {
+                padding: 15px;
+            }
+            h1, h2 {
+                font-size: 22px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1, h2 {
+                font-size: 20px;
+            }
+            .button {
+                font-size: 14px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ログイン画面 -->
+<div class="container" id="loginContainer">
+    <h1>管理者ログイン</h1>
+    <form id="loginForm">
+        <label for="password">パスワード</label>
+        <input type="password" id="password" required>
+        <button class="button blue-button" type="button" onclick="login()">ログイン</button>
+    </form>
+    <p class="error-message" id="errorMessage" style="display: none;">パスワードが間違っています。</p>
+</div>
+
+<!-- 管理者用コンテンツ -->
+<div class="container admin-container" id="adminContainer" style="display:none;">
+    <h1>管理者ページ</h1>
+    <p>ようこそ、管理者様！</p>
+
+    <!-- 新規求人情報追加ボタン -->
+    <button class="button green-button" onclick="showJobForm()">新規求人情報追加</button>
+
+    <!-- 応募者一覧表示ボタン -->
+    <button class="button blue-button" onclick="showApplicantsList()">応募者一覧</button>
+
+    <!-- 求人情報の絞り込みフォーム -->
+    <h2>求人情報の絞り込み</h2>
+    <label for="filterJobTitle">職種</label>
+    <select id="filterJobTitle">
+        <option value="">選択してください</option>
+        <option value="専門職">専門職</option>
+        <option value="調理師・栄養士">調理師・栄養士</option>
+        <option value="税理士・会計士">税理士・会計士</option>
+        <option value="通訳・翻訳">通訳・翻訳</option>
+        <option value="トリマー">トリマー</option>
+        <option value="研究・開発関連">研究・開発関連</option>
+        <option value="マッサージ師・はり師・鍼灸師">マッサージ師・はり師・鍼灸師</option>
+        <option value="整備士">整備士</option>
+        <option value="警察官・自衛官">警察官・自衛官</option>
+    </select>
+
+    <label for="filterLocation">勤務地（都道府県）</label>
+    <select id="filterLocation" onchange="updateCities('filterLocation')">
+        <option value="">選択してください（都道府県）</option>
+        <option value="北海道">北海道</option>
+        <option value="青森県">青森県</option>
+        <option value="岩手県">岩手県</option>
+        <option value="宮城県">宮城県</option>
+    </select>
+
+    <label for="filterCity">市区町村</label>
+    <select id="filterCity">
+        <option value="">選択してください（市区町村）</option>
+    </select>
+
+    <label for="filterEmploymentType">雇用形態</label>
+    <select id="filterEmploymentType">
+        <option value="">選択してください</option>
+        <option value="社員">社員</option>
+        <option value="非正規雇用">非正規雇用</option>
+        <option value="アルバイト">アルバイト</option>
+        <option value="短期">短期</option>
+    </select>
+
+    <button class="button blue-button" type="button" onclick="filterJobs()">絞り込み</button>
+    <button class="button orange-button" type="button" onclick="resetFilter()">一覧表示</button>
+
+    <h2>求人情報の一覧</h2>
+    <div id="jobList"></div>
+
+    <button class="button red-button" onclick="logout()">ログアウト</button>
+</div>
+
+<!-- 求人情報の追加・編集フォーム -->
+<div class="container hidden" id="jobFormContainer">
+    <h2>求人情報の追加・編集</h2>
+    <form id="jobForm">
+        <label for="jobTitle">募集名</label>
+        <input type="text" id="jobTitle" required>
+
+        <label for="jobCategory">職種</label>
+        <select id="jobCategory" required>
+            <option value="">選択してください</option>
+            <option value="専門職">専門職</option>
+            <option value="調理師・栄養士">調理師・栄養士</option>
+            <option value="税理士・会計士">税理士・会計士</option>
+            <option value="通訳・翻訳">通訳・翻訳</option>
+            <option value="トリマー">トリマー</option>
+            <option value="研究・開発関連">研究・開発関連</option>
+            <option value="マッサージ師・はり師・鍼灸師">マッサージ師・はり師・鍼灸師</option>
+            <option value="整備士">整備士</option>
+            <option value="警察官・自衛官">警察官・自衛官</option>
+        </select>
+
+        <label for="location">勤務地（都道府県）</label>
+        <select id="location" onchange="updateCities('location')" required>
+            <option value="">選択してください（都道府県）</option>
+            <option value="北海道">北海道</option>
+            <option value="青森県">青森県</option>
+            <option value="岩手県">岩手県</option>
+            <option value="宮城県">宮城県</option>
+        </select>
+
+        <label for="city">市区町村</label>
+        <select id="city" required>
+            <option value="">選択してください（市区町村）</option>
+        </select>
+
+        <label for="salary">給与</label>
+        <input type="text" id="salary" placeholder="給与（例：月給20万円）" required>
+
+        <label for="companyName">企業名</label>
+        <input type="text" id="companyName" required>
+
+        <label for="jobDescription">仕事内容</label>
+        <textarea id="jobDescription" rows="4" required></textarea>
+
+        <label for="workingHours">勤務時間</label>
+        <select id="workingHours" onchange="showWorkingHoursInput()">
+            <option value="フルタイム">フルタイム（8時間勤務 1時間休憩）</option>
+            <option value="シフト制">シフト制</option>
+            <option value="自由設定">自由に設定</option>
+        </select>
+
+        <div id="workingHoursInput" class="hidden">
+            <label for="workingHoursManual">勤務時間を入力（例：9:00～18:00）</label>
+            <input type="text" id="workingHoursManual">
+        </div>
+
+        <label for="employmentType">雇用形態</label>
+        <select id="employmentType" required>
+            <option value="">選択してください</option>
+            <option value="社員">社員</option>
+            <option value="非正規雇用">非正規雇用</option>
+            <option value="アルバイト">アルバイト</option>
+            <option value="短期">短期</option>
+        </select>
+      
+        <button class="button blue-button" type="button" onclick="saveJob()">保存</button>
+        <button class="button red-button" type="button" onclick="cancelEdit()">キャンセル</button>
+    </form>
+</div>
+
+<script>
+    const correctPassword = "passwd";
+    let currentEditIndex = -1;
+    let jobData = JSON.parse(localStorage.getItem('jobData')) || []; // 求人情報データ
+    let filteredJobs = []; // フィルタリングされた求人情報
+    let applicantsData = JSON.parse(localStorage.getItem('applicantsData')) || []; // 応募者データ
+
+    // ログイン関数
+    function login() {
+        const passwordInput = document.getElementById('password').value;
+        const errorMessage = document.getElementById('errorMessage');
+
+        if (passwordInput === correctPassword) {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('adminContainer').style.display = 'block';
+            displayJobs();
+        } else {
+            errorMessage.style.display = 'block';
+        }
+    }
+
+    // ログアウト関数
+    function logout() {
+        document.getElementById('loginContainer').style.display = 'block';
+        document.getElementById('adminContainer').style.display = 'none';
+    }
+
+    // 市区町村の更新処理
+    function updateCities(selectId) {
+        const location = document.getElementById(selectId).value;
+        const citySelect = document.getElementById(selectId === 'location' ? 'city' : 'filterCity');
+        citySelect.innerHTML = '<option value="">選択してください</option>';  // 既存の選択肢をリセット
+
+        let cities = [];
+        if (location === '北海道') {
+            cities = ['札幌市', '函館市'];
+        } else if (location === '青森県') {
+            cities = ['青森市', '弘前市'];
+        } else if (location === '岩手県') {
+            cities = ['盛岡市', '一関市'];
+        } else if (location === '宮城県') {
+            cities = ['仙台市', '石巻市'];
+        }
+
+        cities.forEach(function(city) {
+            const option = document.createElement('option');
+            option.value = city;
+            option.textContent = city;
+            citySelect.appendChild(option);
+        });
+    }
+
+    // 求人情報を表示
+    function displayJobs() {
+        const jobListDiv = document.getElementById('jobList');
+        jobListDiv.innerHTML = ''; // 初期化
+        let jobsToDisplay = filteredJobs.length ? filteredJobs : jobData;
+
+        jobsToDisplay.forEach(function(job, index) {
+            const jobItem = document.createElement('div');
+            jobItem.className = 'job-item';
+
+            jobItem.innerHTML = `
+                <h3>${job.jobTitle}</h3>
+                <p>職種: ${job.jobCategory}</p>
+                <p>勤務地: ${job.location} ${job.city}</p>
+                <p>給与: ${job.salary}</p>
+                <p>仕事内容: ${job.jobDescription}</p>
+                <p>勤務時間: ${job.workingHours}</p>
+                <p>雇用形態: ${job.employmentType}</p>
+                <button class="button green-button" onclick="editJob(${index})">編集</button>
+                <button class="button red-button" onclick="deleteJob(${index})">削除</button>
+            `;
+            jobListDiv.appendChild(jobItem);
+        });
+    }
+
+    // 求人情報の編集
+    function editJob(index) {
+        const job = jobData[index];
+        currentEditIndex = index;
+
+        document.getElementById('jobTitle').value = job.jobTitle;
+        document.getElementById('jobCategory').value = job.jobCategory;
+        document.getElementById('location').value = job.location;
+        document.getElementById('city').value = job.city;
+        document.getElementById('salary').value = job.salary;
+        document.getElementById('companyName').value = job.companyName;
+        document.getElementById('jobDescription').value = job.jobDescription;
+        document.getElementById('workingHours').value = job.workingHours;
+        document.getElementById('employmentType').value = job.employmentType;
+
+        document.getElementById('adminContainer').style.display = 'none';
+        document.getElementById('jobFormContainer').style.display = 'block';
+    }
+
+    // 求人情報の保存
+    function saveJob() {
+        const jobTitle = document.getElementById('jobTitle').value;
+        const jobCategory = document.getElementById('jobCategory').value;
+        const location = document.getElementById('location').value;
+        const city = document.getElementById('city').value;
+        const salary = document.getElementById('salary').value;
+        const companyName = document.getElementById('companyName').value;
+        const jobDescription = document.getElementById('jobDescription').value;
+        const workingHours = document.getElementById('workingHours').value;
+        const employmentType = document.getElementById('employmentType').value;
+
+        if (!jobTitle || !jobCategory || !location || !city || !salary || !companyName || !jobDescription || !workingHours || !employmentType) {
+            alert("すべての項目を入力してください。");
+            return;
+        }
+
+        const newJob = {
+            jobTitle,
+            jobCategory,
+            location,
+            city,
+            salary,
+            companyName,
+            jobDescription,
+            workingHours,
+            employmentType
+        };
+
+        if (currentEditIndex === -1) {
+            jobData.push(newJob);
+        } else {
+            jobData[currentEditIndex] = newJob;
+            currentEditIndex = -1;
+        }
+
+        localStorage.setItem('jobData', JSON.stringify(jobData));
+        displayJobs();
+        cancelEdit();
+    }
+
+    // 求人情報の削除
+    function deleteJob(index) {
+        jobData.splice(index, 1);
+        localStorage.setItem('jobData', JSON.stringify(jobData));
+        displayJobs();
+    }
+
+    // 求人情報の絞り込み
+    function filterJobs() {
+        const jobTitle = document.getElementById('filterJobTitle').value;
+        const location = document.getElementById('filterLocation').value;
+        const city = document.getElementById('filterCity').value;
+        const employmentType = document.getElementById('filterEmploymentType').value;
+
+        filteredJobs = jobData.filter(function(job) {
+            return (
+                (jobTitle === '' || job.jobCategory === jobTitle) &&
+                (location === '' || job.location === location) &&
+                (city === '' || job.city === city) &&
+                (employmentType === '' || job.employmentType === employmentType)
+            );
+        });
+
+        displayJobs();
+    }
+
+    // フィルターのリセット
+    function resetFilter() {
+        filteredJobs = [];
+        document.getElementById('filterJobTitle').value = '';
+        document.getElementById('filterLocation').value = '';
+        document.getElementById('filterCity').value = '';
+        document.getElementById('filterEmploymentType').value = '';
+        displayJobs();
+    }
+
+    // 編集フォームのキャンセル
+    function cancelEdit() {
+        document.getElementById('jobFormContainer').style.display = 'none';
+        document.getElementById('adminContainer').style.display = 'block';
+    }
+
+    // 勤務時間の入力を表示
+    function showWorkingHoursInput() {
+        const workingHours = document.getElementById('workingHours').value;
+        if (workingHours === '自由設定') {
+            document.getElementById('workingHoursInput').classList.remove('hidden');
+        } else {
+            document.getElementById('workingHoursInput').classList.add('hidden');
+        }
+    }
+
+    // 初期表示
+    displayJobs();
+</script>
+</body>
+</html>
