@@ -3,434 +3,449 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理者ログイン</title>
+    <title>顧客情報管理</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f9;
+        .customer-details, .customer-add, .customer-edit {
+            display: none;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        .customer-list {
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        /* 顧客情報リストのスタイル */
+        .customer-item {
+            border: 1px solid #ccc;
+            border-radius: 10px;
             padding: 20px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+            transition: background-color 0.3s ease;
         }
-        .hidden { display: none; }
-        .button {
-            padding: 15px 30px;
-            font-size: 18px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            margin: 10px 0;
+
+        .customer-item:hover {
+            background-color: #e6e6e6;
         }
-        .green-button {
+
+        .customer-item p {
+            margin: 5px 0;
+        }
+
+        /* 詳細ボタンのスタイル */
+        .customer-item button {
+            padding: 10px 20px;
             background-color: #4CAF50;
             color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
-        .blue-button {
-            background-color: #007BFF;
-            color: white;
+
+        .customer-item button:hover {
+            background-color: #45a049;
         }
-        .orange-button {
-            background-color: #FF5733;
-            color: white;
+
+        /* 顧客詳細情報のレイアウト */
+        .customer-info {
+            font-size: 16px;
+            margin: 15px 0;
         }
-        .red-button {
-            background-color: #FF3333;
-            color: white;
+
+        .customer-info div {
+            margin-bottom: 10px;
         }
-        .job-item { 
-            margin: 20px 0; 
-            padding: 20px; 
-            border: 1px solid #ccc; 
-            border-radius: 8px; 
-            background-color: #fff; 
-        }
-        h1, h2 {
+
+        .customer-info strong {
             color: #333;
         }
-        label {
-            font-weight: bold;
-        }
-        select, input, textarea {
+
+        /* 検索フォームのスタイル */
+        #searchInput {
             width: 100%;
-            padding: 10px;
-            margin: 5px 0;
-            border: 1px solid #ccc;
+            padding: 15px;
+            font-size: 18px;
+            margin-bottom: 20px;
+            border: 2px solid #ccc;
             border-radius: 5px;
-        }
-        .job-item button {
-            padding: 10px 20px;
-            font-size: 16px;
-        }
-        .error-message {
-            color: red;
+            box-sizing: border-box;
         }
 
-        /* レスポンシブデザインの追加 */
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-            .button {
-                width: 100%;
-                font-size: 16px;
-                padding: 12px;
-            }
-            .job-item {
-                padding: 15px;
-            }
-            h1, h2 {
-                font-size: 22px;
-            }
+        /* 新規顧客追加ボタン */
+        #addCustomerButton {
+            padding: 15px 30px;
+            background-color: #007bff;
+            color: white;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: block;
+            margin-bottom: 20px;
         }
 
-        @media (max-width: 480px) {
-            h1, h2 {
-                font-size: 20px;
-            }
-            .button {
-                font-size: 14px;
-                padding: 10px;
-            }
+        #addCustomerButton:hover {
+            background-color: #0056b3;
         }
+
     </style>
 </head>
 <body>
 
-<!-- ログイン画面 -->
-<div class="container" id="loginContainer">
-    <h1>管理者ログイン</h1>
-    <form id="loginForm">
-        <label for="password">パスワード</label>
-        <input type="password" id="password" required>
-        <button class="button blue-button" type="button" onclick="login()">ログイン</button>
-    </form>
-    <p class="error-message" id="errorMessage" style="display: none;">パスワードが間違っています。</p>
-</div>
+    <h1>顧客情報管理</h1>
 
-<!-- 管理者用コンテンツ -->
-<div class="container admin-container" id="adminContainer" style="display:none;">
-    <h1>管理者ページ</h1>
-    <p>ようこそ、管理者様！</p>
+    <!-- 顧客情報一覧 -->
+    <div id="customerList" class="customer-list">
+        <h2>顧客情報一覧</h2>
 
-    <!-- 新規求人情報追加ボタン -->
-    <button class="button green-button" onclick="showJobForm()">新規求人情報追加</button>
-
-    <!-- 応募者一覧表示ボタン -->
-    <button class="button blue-button" onclick="showApplicantsList()">応募者一覧</button>
-
-    <!-- 求人情報の絞り込みフォーム -->
-    <h2>求人情報の絞り込み</h2>
-    <label for="filterJobTitle">職種</label>
-    <select id="filterJobTitle">
-        <option value="">選択してください</option>
-        <option value="専門職">専門職</option>
-        <option value="調理師・栄養士">調理師・栄養士</option>
-        <option value="税理士・会計士">税理士・会計士</option>
-        <option value="通訳・翻訳">通訳・翻訳</option>
-        <option value="トリマー">トリマー</option>
-        <option value="研究・開発関連">研究・開発関連</option>
-        <option value="マッサージ師・はり師・鍼灸師">マッサージ師・はり師・鍼灸師</option>
-        <option value="整備士">整備士</option>
-        <option value="警察官・自衛官">警察官・自衛官</option>
-    </select>
-
-    <label for="filterLocation">勤務地（都道府県）</label>
-    <select id="filterLocation" onchange="updateCities('filterLocation')">
-        <option value="">選択してください（都道府県）</option>
-        <option value="北海道">北海道</option>
-        <option value="青森県">青森県</option>
-        <option value="岩手県">岩手県</option>
-        <option value="宮城県">宮城県</option>
-    </select>
-
-    <label for="filterCity">市区町村</label>
-    <select id="filterCity">
-        <option value="">選択してください（市区町村）</option>
-    </select>
-
-    <label for="filterEmploymentType">雇用形態</label>
-    <select id="filterEmploymentType">
-        <option value="">選択してください</option>
-        <option value="社員">社員</option>
-        <option value="非正規雇用">非正規雇用</option>
-        <option value="アルバイト">アルバイト</option>
-        <option value="短期">短期</option>
-    </select>
-
-    <button class="button blue-button" type="button" onclick="filterJobs()">絞り込み</button>
-    <button class="button orange-button" type="button" onclick="resetFilter()">一覧表示</button>
-
-    <h2>求人情報の一覧</h2>
-    <div id="jobList"></div>
-
-    <button class="button red-button" onclick="logout()">ログアウト</button>
-</div>
-
-<!-- 求人情報の追加・編集フォーム -->
-<div class="container hidden" id="jobFormContainer">
-    <h2>求人情報の追加・編集</h2>
-    <form id="jobForm">
-        <label for="jobTitle">募集名</label>
-        <input type="text" id="jobTitle" required>
-
-        <label for="jobCategory">職種</label>
-        <select id="jobCategory" required>
-            <option value="">選択してください</option>
-            <option value="専門職">専門職</option>
-            <option value="調理師・栄養士">調理師・栄養士</option>
-            <option value="税理士・会計士">税理士・会計士</option>
-            <option value="通訳・翻訳">通訳・翻訳</option>
-            <option value="トリマー">トリマー</option>
-            <option value="研究・開発関連">研究・開発関連</option>
-            <option value="マッサージ師・はり師・鍼灸師">マッサージ師・はり師・鍼灸師</option>
-            <option value="整備士">整備士</option>
-            <option value="警察官・自衛官">警察官・自衛官</option>
-        </select>
-
-        <label for="location">勤務地（都道府県）</label>
-        <select id="location" onchange="updateCities('location')" required>
-            <option value="">選択してください（都道府県）</option>
-            <option value="北海道">北海道</option>
-            <option value="青森県">青森県</option>
-            <option value="岩手県">岩手県</option>
-            <option value="宮城県">宮城県</option>
-        </select>
-
-        <label for="city">市区町村</label>
-        <select id="city" required>
-            <option value="">選択してください（市区町村）</option>
-        </select>
-
-        <label for="salary">給与</label>
-        <input type="text" id="salary" placeholder="給与（例：月給20万円）" required>
-
-        <label for="companyName">企業名</label>
-        <input type="text" id="companyName" required>
-
-        <label for="jobDescription">仕事内容</label>
-        <textarea id="jobDescription" rows="4" required></textarea>
-
-        <label for="workingHours">勤務時間</label>
-        <select id="workingHours" onchange="showWorkingHoursInput()">
-            <option value="フルタイム">フルタイム（8時間勤務 1時間休憩）</option>
-            <option value="シフト制">シフト制</option>
-            <option value="自由設定">自由に設定</option>
-        </select>
-
-        <div id="workingHoursInput" class="hidden">
-            <label for="workingHoursManual">勤務時間を入力（例：9:00～18:00）</label>
-            <input type="text" id="workingHoursManual">
+        <!-- 検索フォーム -->
+        <div>
+            <input type="text" id="searchInput" placeholder="名前で検索" oninput="searchCustomers()">
         </div>
 
-        <label for="employmentType">雇用形態</label>
-        <select id="employmentType" required>
-            <option value="">選択してください</option>
-            <option value="社員">社員</option>
-            <option value="非正規雇用">非正規雇用</option>
-            <option value="アルバイト">アルバイト</option>
-            <option value="短期">短期</option>
-        </select>
-      
-        <button class="button blue-button" type="button" onclick="saveJob()">保存</button>
-        <button class="button red-button" type="button" onclick="cancelEdit()">キャンセル</button>
-    </form>
-</div>
+        <button onclick="showAddCustomerPage()">新規顧客追加</button>
+        <div id="customerItems"></div>
+    </div>
 
-<script>
-    const correctPassword = "passwd";
-    let currentEditIndex = -1;
-    let jobData = JSON.parse(localStorage.getItem('jobData')) || []; // 求人情報データ
-    let filteredJobs = []; // フィルタリングされた求人情報
-    let applicantsData = JSON.parse(localStorage.getItem('applicantsData')) || []; // 応募者データ
+    <!-- 新規顧客情報追加ページ -->
+    <div id="customerAddPage" class="customer-add">
+        <h2>新規顧客追加</h2>
+        <!-- 新規顧客のフォーム -->
+        <div class="form-group">
+            <label for="newMemberId">会員番号:</label>
+            <input type="text" id="newMemberId" placeholder="会員番号">
+        </div>
+        <div class="form-group">
+            <label for="newName">名前:</label>
+            <input type="text" id="newName" placeholder="名前">
+        </div>
+        <div class="form-group">
+            <label for="newOccupation">職業:</label>
+            <input type="text" id="newOccupation" placeholder="職業">
+        </div>
+        <div class="form-group">
+            <label for="newAge">年齢:</label>
+            <input type="number" id="newAge" placeholder="年齢">
+        </div>
+        <div class="form-group">
+            <label for="newNickname">あだ名:</label>
+            <input type="text" id="newNickname" placeholder="あだ名">
+        </div>
+        <div class="form-group">
+            <label for="newNGWords">NGワード:</label>
+            <input type="text" id="newNGWords" placeholder="NGワード">
+        </div>
+        <div class="form-group">
+            <label for="newPreferences">好み（話題など）:</label>
+            <input type="text" id="newPreferences" placeholder="好み（話題など）">
+        </div>
+        <div class="form-group">
+            <label for="newAlcohol">好むお酒の種類:</label>
+            <select id="newAlcohol" multiple>
+                <option value="ビール">ビール</option>
+                <option value="ワイン">ワイン</option>
+                <option value="ウィスキー">ウィスキー</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="newVisitDates">来店日時:</label>
+            <input type="date" id="newVisitDates" multiple>
+            <button onclick="addVisitDate()">来店日時追加</button>
+            <ul id="visitDatesList"></ul>
+        </div>
+        <div class="form-group">
+            <label for="newPhoto">顔写真URL:</label>
+            <input type="text" id="newPhoto" placeholder="顔写真URL">
+        </div>
+        <div class="form-group">
+            <label for="newReferral">何経由できたか:</label>
+            <select id="newReferral">
+                <option value="友達">友達</option>
+                <option value="ふらっと">ふらっと</option>
+                <option value="紹介">紹介</option>
+                <option value="その他">その他</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="newSpent">1回でいくら使うか:</label>
+            <input type="number" id="newSpent" placeholder="1回でいくら使うか">
+        </div>
+        <div class="form-group">
+            <label for="newAfter">アフターの有無:</label>
+            <select id="newAfter">
+                <option value="あり">あり</option>
+                <option value="なし">なし</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="newPreferredWomen">好みの女性:</label>
+            <input type="text" id="newPreferredWomen" placeholder="好みの女性">
+        </div>
+        <button onclick="addNewCustomer()">顧客を追加</button>
+        <button onclick="goBackToCustomerList()">戻る</button>
+    </div>
 
-    // ログイン関数
-    function login() {
-        const passwordInput = document.getElementById('password').value;
-        const errorMessage = document.getElementById('errorMessage');
+    <!-- 顧客詳細情報ページ -->
+    <div id="customerDetailPage" class="customer-details">
+        <h2>顧客詳細情報</h2>
+        <div id="customerInfo"></div>
+        <button onclick="showCustomerList()">戻る</button>
+        <button onclick="showEditCustomerPage()">編集</button>
+    </div>
 
-        if (passwordInput === correctPassword) {
-            document.getElementById('loginContainer').style.display = 'none';
-            document.getElementById('adminContainer').style.display = 'block';
-            displayJobs();
-        } else {
-            errorMessage.style.display = 'block';
+    <!-- 顧客情報編集ページ -->
+    <div id="customerEditPage" class="customer-edit">
+        <h2>顧客情報編集</h2>
+        <div class="form-group">
+            <label for="editMemberId">会員番号:</label>
+            <input type="text" id="editMemberId" readonly>
+        </div>
+        <div class="form-group">
+            <label for="editName">名前:</label>
+            <input type="text" id="editName">
+        </div>
+        <div class="form-group">
+            <label for="editOccupation">職業:</label>
+            <input type="text" id="editOccupation">
+        </div>
+        <div class="form-group">
+            <label for="editAge">年齢:</label>
+            <input type="number" id="editAge">
+        </div>
+        <div class="form-group">
+            <label for="editNickname">あだ名:</label>
+            <input type="text" id="editNickname">
+        </div>
+        <div class="form-group">
+            <label for="editNGWords">NGワード:</label>
+            <input type="text" id="editNGWords">
+        </div>
+        <div class="form-group">
+            <label for="editPreferences">好み（話題など）:</label>
+            <input type="text" id="editPreferences">
+        </div>
+        <div class="form-group">
+            <label for="editAlcohol">好むお酒の種類:</label>
+            <select id="editAlcohol" multiple>
+                <option value="ビール">ビール</option>
+                <option value="ワイン">ワイン</option>
+                <option value="ウィスキー">ウィスキー</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="editVisitDates">来店日時:</label>
+            <input type="date" id="editVisitDates" multiple>
+            <button onclick="addVisitDate()">来店日時追加</button>
+            <ul id="visitDatesList"></ul>
+        </div>
+        <div class="form-group">
+            <label for="editPhoto">顔写真URL:</label>
+            <input type="text" id="editPhoto">
+        </div>
+        <div class="form-group">
+            <label for="editReferral">何経由できたか:</label>
+            <select id="editReferral">
+                <option value="友達">友達</option>
+                <option value="ふらっと">ふらっと</option>
+                <option value="紹介">紹介</option>
+                <option value="その他">その他</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="editSpent">1回でいくら使うか:</label>
+            <input type="number" id="editSpent">
+        </div>
+        <div class="form-group">
+            <label for="editAfter">アフターの有無:</label>
+            <select id="editAfter">
+                <option value="あり">あり</option>
+                <option value="なし">なし</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="editPreferredWomen">好みの女性:</label>
+            <input type="text" id="editPreferredWomen">
+        </div>
+
+        <button onclick="saveCustomerEdit()">保存</button>
+        <button onclick="showCustomerList()">戻る</button>
+    </div>
+
+    <script>
+        const customers = JSON.parse(localStorage.getItem('customers')) || [];
+        let editingCustomerId = null;
+
+       // 顧客情報の一覧を表示
+function displayCustomerList(filteredCustomers = customers) {
+    const customerItemsDiv = document.getElementById('customerItems');
+    customerItemsDiv.innerHTML = '';
+
+    filteredCustomers.forEach(customer => {
+        const customerItemDiv = document.createElement('div');
+        customerItemDiv.classList.add('customer-item');
+        const visitCount = customer.visitDates ? customer.visitDates.length : 0;
+        const points = visitCount * 10; // 来店回数でポイントを計算（1回で10ポイント）
+        customerItemDiv.innerHTML = `
+            <p>名前: ${customer.name}</p>
+            <p>職業: ${customer.occupation}</p>
+            <p>年齢: ${customer.age}</p>
+            <p>来店回数: ${visitCount}回 | ポイント: ${points}p</p>
+            <button onclick="viewCustomerDetails('${customer.memberId}')">詳細</button>
+        `;
+        customerItemsDiv.appendChild(customerItemDiv);
+    });
+}
+
+
+        // 顧客詳細情報を表示
+        function viewCustomerDetails(memberId) {
+    const customer = customers.find(c => c.memberId === memberId);
+    if (!customer) {
+        alert('顧客情報が見つかりません');
+        return;
+    }
+
+    editingCustomerId = customer.memberId;
+
+    const customerInfoDiv = document.getElementById('customerInfo');
+    customerInfoDiv.innerHTML = `
+        <div><strong>会員番号:</strong> ${customer.memberId}</div>
+        <div><strong>名前:</strong> ${customer.name}</div>
+        <div><strong>職業:</strong> ${customer.occupation}</div>
+        <div><strong>年齢:</strong> ${customer.age}</div>
+        <div><strong>あだ名:</strong> ${customer.nickname}</div>
+        <div><strong>来店回数:</strong> ${customer.visitDates.length}回</div>
+        <div><strong>来店日時:</strong> ${customer.visitDates.join(', ')}</div>
+        <div><strong>NGワード:</strong> ${customer.ngWords}</div>
+        <div><strong>好み（話題など）:</strong> ${customer.preferences}</div>
+        <div><strong>好むお酒の種類:</strong> ${customer.alcohol.join(', ')}</div>
+        <div><strong>顔写真:</strong> <img src="${customer.photo}" alt="顔写真"></div>
+        <div><strong>何経由できたか:</strong> ${customer.referral}</div>
+        <div><strong>1回でいくら使うか:</strong> ${customer.spent}</div>
+        <div><strong>アフターの有無:</strong> ${customer.after}</div>
+        <div><strong>好みの女性:</strong> ${customer.preferredWomen}</div>
+    `;
+    document.getElementById('customerList').style.display = 'none';
+    document.getElementById('customerDetailPage').style.display = 'block';
+}
+
+
+// 新規顧客追加ページを表示する関数
+function showAddCustomerPage() {
+    document.getElementById('customerList').style.display = 'none';
+    document.getElementById('customerAddPage').style.display = 'block';
+}
+
+
+        // 編集ページに移動
+        function showEditCustomerPage() {
+            const customer = customers.find(c => c.memberId === editingCustomerId);
+            if (!customer) {
+                alert('顧客情報が見つかりません');
+                return;
+            }
+
+            document.getElementById('editMemberId').value = customer.memberId;
+            document.getElementById('editName').value = customer.name;
+            document.getElementById('editOccupation').value = customer.occupation;
+            document.getElementById('editAge').value = customer.age;
+            document.getElementById('editNickname').value = customer.nickname;
+            document.getElementById('editNGWords').value = customer.ngWords;
+            document.getElementById('editPreferences').value = customer.preferences;
+            document.getElementById('editAlcohol').value = customer.alcohol;
+            document.getElementById('editVisitDates').value = customer.visitDates.join(',');
+            document.getElementById('editPhoto').value = customer.photo;
+            document.getElementById('editReferral').value = customer.referral;
+            document.getElementById('editSpent').value = customer.spent;
+            document.getElementById('editAfter').value = customer.after;
+            document.getElementById('editPreferredWomen').value = customer.preferredWomen;
+
+            document.getElementById('customerDetailPage').style.display = 'none';
+            document.getElementById('customerEditPage').style.display = 'block';
         }
-    }
 
-    // ログアウト関数
-    function logout() {
-        document.getElementById('loginContainer').style.display = 'block';
-        document.getElementById('adminContainer').style.display = 'none';
-    }
+        // 顧客編集内容を保存
+        function saveCustomerEdit() {
+            const customer = customers.find(c => c.memberId === editingCustomerId);
+            if (!customer) {
+                alert('顧客情報が見つかりません');
+                return;
+            }
 
-    // 市区町村の更新処理
-    function updateCities(selectId) {
-        const location = document.getElementById(selectId).value;
-        const citySelect = document.getElementById(selectId === 'location' ? 'city' : 'filterCity');
-        citySelect.innerHTML = '<option value="">選択してください</option>';  // 既存の選択肢をリセット
+            customer.name = document.getElementById('editName').value;
+            customer.occupation = document.getElementById('editOccupation').value;
+            customer.age = document.getElementById('editAge').value;
+            customer.nickname = document.getElementById('editNickname').value;
+            customer.ngWords = document.getElementById('editNGWords').value;
+            customer.preferences = document.getElementById('editPreferences').value;
+            customer.alcohol = Array.from(document.getElementById('editAlcohol').selectedOptions).map(option => option.value);
+            customer.visitDates = document.getElementById('editVisitDates').value.split(',');
+            customer.photo = document.getElementById('editPhoto').value;
+            customer.referral = document.getElementById('editReferral').value;
+            customer.spent = document.getElementById('editSpent').value;
+            customer.after = document.getElementById('editAfter').value;
+            customer.preferredWomen = document.getElementById('editPreferredWomen').value;
 
-        let cities = [];
-        if (location === '北海道') {
-            cities = ['札幌市', '函館市'];
-        } else if (location === '青森県') {
-            cities = ['青森市', '弘前市'];
-        } else if (location === '岩手県') {
-            cities = ['盛岡市', '一関市'];
-        } else if (location === '宮城県') {
-            cities = ['仙台市', '石巻市'];
+            localStorage.setItem('customers', JSON.stringify(customers));
+            showCustomerList();
         }
 
-        cities.forEach(function(city) {
-            const option = document.createElement('option');
-            option.value = city;
-            option.textContent = city;
-            citySelect.appendChild(option);
-        });
-    }
+        // 顧客検索機能（名前で検索）
+function searchCustomers() {
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const filteredCustomers = customers.filter(customer => {
+        return customer.name.toLowerCase().includes(searchInput);
+    });
 
-    // 求人情報を表示
-    function displayJobs() {
-        const jobListDiv = document.getElementById('jobList');
-        jobListDiv.innerHTML = ''; // 初期化
-        let jobsToDisplay = filteredJobs.length ? filteredJobs : jobData;
+    // フィルタリングした顧客リストを表示
+    displayCustomerList(filteredCustomers);
+}
 
-        jobsToDisplay.forEach(function(job, index) {
-            const jobItem = document.createElement('div');
-            jobItem.className = 'job-item';
 
-            jobItem.innerHTML = `
-                <h3>${job.jobTitle}</h3>
-                <p>職種: ${job.jobCategory}</p>
-                <p>勤務地: ${job.location} ${job.city}</p>
-                <p>給与: ${job.salary}</p>
-                <p>仕事内容: ${job.jobDescription}</p>
-                <p>勤務時間: ${job.workingHours}</p>
-                <p>雇用形態: ${job.employmentType}</p>
-                <button class="button green-button" onclick="editJob(${index})">編集</button>
-                <button class="button red-button" onclick="deleteJob(${index})">削除</button>
-            `;
-            jobListDiv.appendChild(jobItem);
-        });
-    }
-
-    // 求人情報の編集
-    function editJob(index) {
-        const job = jobData[index];
-        currentEditIndex = index;
-
-        document.getElementById('jobTitle').value = job.jobTitle;
-        document.getElementById('jobCategory').value = job.jobCategory;
-        document.getElementById('location').value = job.location;
-        document.getElementById('city').value = job.city;
-        document.getElementById('salary').value = job.salary;
-        document.getElementById('companyName').value = job.companyName;
-        document.getElementById('jobDescription').value = job.jobDescription;
-        document.getElementById('workingHours').value = job.workingHours;
-        document.getElementById('employmentType').value = job.employmentType;
-
-        document.getElementById('adminContainer').style.display = 'none';
-        document.getElementById('jobFormContainer').style.display = 'block';
-    }
-
-    // 求人情報の保存
-    function saveJob() {
-        const jobTitle = document.getElementById('jobTitle').value;
-        const jobCategory = document.getElementById('jobCategory').value;
-        const location = document.getElementById('location').value;
-        const city = document.getElementById('city').value;
-        const salary = document.getElementById('salary').value;
-        const companyName = document.getElementById('companyName').value;
-        const jobDescription = document.getElementById('jobDescription').value;
-        const workingHours = document.getElementById('workingHours').value;
-        const employmentType = document.getElementById('employmentType').value;
-
-        if (!jobTitle || !jobCategory || !location || !city || !salary || !companyName || !jobDescription || !workingHours || !employmentType) {
-            alert("すべての項目を入力してください。");
-            return;
+        // 顧客リストページに戻る
+        function showCustomerList() {
+            document.getElementById('customerList').style.display = 'block';
+            document.getElementById('customerDetailPage').style.display = 'none';
+            document.getElementById('customerEditPage').style.display = 'none';
         }
 
-        const newJob = {
-            jobTitle,
-            jobCategory,
-            location,
-            city,
-            salary,
-            companyName,
-            jobDescription,
-            workingHours,
-            employmentType
-        };
+        // 新規顧客追加
+        function addNewCustomer() {
+            const newCustomer = {
+                memberId: document.getElementById('newMemberId').value,
+                name: document.getElementById('newName').value,
+                occupation: document.getElementById('newOccupation').value,
+                age: document.getElementById('newAge').value,
+                nickname: document.getElementById('newNickname').value,
+                ngWords: document.getElementById('newNGWords').value,
+                preferences: document.getElementById('newPreferences').value,
+                alcohol: Array.from(document.getElementById('newAlcohol').selectedOptions).map(option => option.value),
+                visitDates: [],
+                photo: document.getElementById('newPhoto').value,
+                referral: document.getElementById('newReferral').value,
+                spent: document.getElementById('newSpent').value,
+                after: document.getElementById('newAfter').value,
+                preferredWomen: document.getElementById('newPreferredWomen').value
+            };
 
-        if (currentEditIndex === -1) {
-            jobData.push(newJob);
-        } else {
-            jobData[currentEditIndex] = newJob;
-            currentEditIndex = -1;
+            customers.push(newCustomer);
+            localStorage.setItem('customers', JSON.stringify(customers));
+            showCustomerList();
         }
 
-        localStorage.setItem('jobData', JSON.stringify(jobData));
-        displayJobs();
-        cancelEdit();
-    }
-
-    // 求人情報の削除
-    function deleteJob(index) {
-        jobData.splice(index, 1);
-        localStorage.setItem('jobData', JSON.stringify(jobData));
-        displayJobs();
-    }
-
-    // 求人情報の絞り込み
-    function filterJobs() {
-        const jobTitle = document.getElementById('filterJobTitle').value;
-        const location = document.getElementById('filterLocation').value;
-        const city = document.getElementById('filterCity').value;
-        const employmentType = document.getElementById('filterEmploymentType').value;
-
-        filteredJobs = jobData.filter(function(job) {
-            return (
-                (jobTitle === '' || job.jobCategory === jobTitle) &&
-                (location === '' || job.location === location) &&
-                (city === '' || job.city === city) &&
-                (employmentType === '' || job.employmentType === employmentType)
-            );
-        });
-
-        displayJobs();
-    }
-
-    // フィルターのリセット
-    function resetFilter() {
-        filteredJobs = [];
-        document.getElementById('filterJobTitle').value = '';
-        document.getElementById('filterLocation').value = '';
-        document.getElementById('filterCity').value = '';
-        document.getElementById('filterEmploymentType').value = '';
-        displayJobs();
-    }
-
-    // 編集フォームのキャンセル
-    function cancelEdit() {
-        document.getElementById('jobFormContainer').style.display = 'none';
-        document.getElementById('adminContainer').style.display = 'block';
-    }
-
-    // 勤務時間の入力を表示
-    function showWorkingHoursInput() {
-        const workingHours = document.getElementById('workingHours').value;
-        if (workingHours === '自由設定') {
-            document.getElementById('workingHoursInput').classList.remove('hidden');
-        } else {
-            document.getElementById('workingHoursInput').classList.add('hidden');
+        // 新規顧客追加ページに戻る
+        function goBackToCustomerList() {
+            document.getElementById('customerAddPage').style.display = 'none';
+            document.getElementById('customerList').style.display = 'block';
         }
-    }
 
-    // 初期表示
-    displayJobs();
-</script>
+        // 初期表示
+        displayCustomerList();
+    </script>
+
 </body>
 </html>
